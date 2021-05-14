@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.verification.VerificationMode;
 
 import java.util.List;
 
@@ -41,5 +42,23 @@ class OvenTest {
         Mockito.verify(fan).on();
     }
 
+    @Test
+    void ifHeatTypeIsNotThermoCirculationFanShouldNotBeTurnedOn() {
+        int anyTemp = 20;
+        ProgramStage programStage1 = ProgramStage.builder()
+                .withHeat(HeatType.HEATER)
+                .withStageTime(20)
+                .withTargetTemp(200)
+                .build();
+        ProgramStage programStage2 = ProgramStage.builder()
+                .withHeat(HeatType.GRILL)
+                .withStageTime(20)
+                .withTargetTemp(200)
+                .build();
+        List<ProgramStage> stagesList = List.of(programStage1, programStage2);
+        BakingProgram bakingProgram = BakingProgram.builder().withInitialTemp(anyTemp).withStages(stagesList).build();
+        oven.start(bakingProgram);
+        Mockito.verify(fan, Mockito.never()).on();
+    }
 
 }
