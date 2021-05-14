@@ -1,15 +1,13 @@
 package edu.iis.mto.oven;
 
-import static org.hamcrest.Matchers.equalTo;
-
-import org.hamcrest.MatcherAssert;
+import net.bytebuddy.implementation.bytecode.Throw;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.verification.VerificationMode;
 
 import java.util.List;
 
@@ -85,4 +83,21 @@ class OvenTest {
         Mockito.verify(fan,Mockito.times(3)).off();
     }
 
+    @Test
+    void ProgramShouldThrowOvenExceptionIfHeatModuleThrowHeatingException() {
+        int anyTemp = 20;
+        ProgramStage programStage3 = ProgramStage.builder()
+                .withHeat(HeatType.THERMO_CIRCULATION)
+                .withStageTime(20)
+                .withTargetTemp(200)
+                .build();
+        List<ProgramStage> stagesList = List.of(programStage3);
+        BakingProgram bakingProgram = BakingProgram.builder().withInitialTemp(anyTemp).withStages(stagesList).build();
+
+        Assertions.assertThrows(OvenException.class, ()->{
+            Mockito.doThrow(new HeatingException()).when(heatingModule).termalCircuit(Mockito.any());
+            oven.start(bakingProgram);
+        });
+
+    }
 }
